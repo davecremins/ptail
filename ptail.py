@@ -3,10 +3,10 @@
 import sys
 import time
 
-default_character_line_size = 75
-default_line_count = 10
-file_position = None
-interval = .500
+DEFAULT_CHARACTER_LINE_SIZE = 75
+DEFAULT_LINE_COUNT = 10
+MAX_SIZE = DEFAULT_CHARACTER_LINE_SIZE*DEFAULT_LINE_COUNT
+INTERVAL = .2
 
 def execute_and_sleep(secs):
     def decorator(func):
@@ -17,23 +17,31 @@ def execute_and_sleep(secs):
         return wrapper
     return decorator
 
-def get_read_position(file_position):
-    return file_position - (default_character_line_size*default_line_count)
+def get_read_position(position):
+    if(position > MAX_SIZE):
+        return position - MAX_SIZE
+    return position
 
 def show(lines):
     formatted = ''.join(lines)
     print(formatted)
 
-@execute_and_sleep(interval)
+@execute_and_sleep(INTERVAL)
 def tail(file_handle):
-    file_handle.seek(0, 2)
-    file_position = file_handle.tell()
-    read_position = get_read_position(file_position)
-    file_handle.seek(read_position, 0)
-    lines = file_handle.readlines()
-    file_position = file_handle.tell()
-    lines = lines[-10:]
-    show(lines)
+    last_file_position = 0
+    last_seek_position = 0
+    while True:
+        file_handle.seek(0, 2)
+        last_seek_position = file_handle.tell()
+        if(last_file_position < last_seek_position):
+            diff = last_seek_position - last_file_position
+            if(diff > MAX_SIZE): 
+                last_file_position = last_seek_position - MAX_SIZE
+            file_handle.seek(last_file_position, 0)
+            lines = file_handle.readlines()
+            last_file_position = file_handle.tell()
+            lines = lines[-10:]
+            show(lines)
 
 def connect_to_file(file_name):
     try:
