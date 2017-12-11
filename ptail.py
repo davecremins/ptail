@@ -6,7 +6,7 @@ import time
 DEFAULT_CHARACTER_LINE_SIZE = 75
 DEFAULT_LINE_COUNT = 10
 MAX_SIZE = DEFAULT_CHARACTER_LINE_SIZE*DEFAULT_LINE_COUNT
-INTERVAL = .2
+INTERVAL = .5
 
 def execute_and_sleep(secs):
     def decorator(func):
@@ -17,14 +17,8 @@ def execute_and_sleep(secs):
         return wrapper
     return decorator
 
-def get_read_position(position):
-    if(position > MAX_SIZE):
-        return position - MAX_SIZE
-    return position
-
-def show(lines):
-    formatted = ''.join(lines)
-    print(formatted)
+def attach(data):
+    sys.stdout.write(data)
 
 @execute_and_sleep(INTERVAL)
 def tail(file_handle):
@@ -38,15 +32,17 @@ def tail(file_handle):
             if(diff > MAX_SIZE): 
                 last_file_position = last_seek_position - MAX_SIZE
             file_handle.seek(last_file_position, 0)
-            lines = file_handle.readlines()
+            data = file_handle.read()
             last_file_position = file_handle.tell()
-            lines = lines[-10:]
-            show(lines)
+            attach(data)
+
 
 def connect_to_file(file_name):
     try:
         with open(file_name, 'r') as file:
             tail(file)
+    except FileNotFoundError:
+        exit(f'{file_name} could not be found! Exiting...')
     except KeyboardInterrupt:
         exit()
 
