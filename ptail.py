@@ -2,27 +2,33 @@
 
 import sys
 import time
+# import logging
 
+BEGINNING, END = 0, 2
 DEFAULT_CHARACTER_LINE_SIZE = 75
 DEFAULT_LINE_COUNT = 10
 MAX_SIZE = DEFAULT_CHARACTER_LINE_SIZE*DEFAULT_LINE_COUNT
-INTERVAL = 1
+INTERVAL = 0.2
+
+# logging.basicConfig(filename='debug.log',level=logging.DEBUG)
 
 def attach(data):
     sys.stdout.write(data)
 
 def tail(file_handle):
-    last_file_position = 0
-    last_seek_position = 0
+    last_file_position, last_seek_position = 0, 0
     while True:
-        file_handle.seek(0, 2)
+        file_handle.seek(0, END)
         last_seek_position = file_handle.tell()
         if(last_file_position < last_seek_position):
+            # logging.debug(f'last_file_position: {last_file_position}')
+            # logging.debug(f'last_seek_position: {last_seek_position}')
             diff = last_seek_position - last_file_position
             if(diff > MAX_SIZE): 
                 last_file_position = last_seek_position - MAX_SIZE
-            file_handle.seek(last_file_position, 0)
+            file_handle.seek(last_file_position, BEGINNING)
             data = file_handle.read()
+            # logging.debug(f'data: {data}')
             last_file_position = file_handle.tell()
             attach(data)
         time.sleep(INTERVAL) 
